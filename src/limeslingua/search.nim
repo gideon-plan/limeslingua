@@ -5,7 +5,7 @@
 {.experimental: "strict_funcs".}
 
 import std/[algorithm, tables]
-import lattice, detect
+import basis/code/choice, detect
 
 # =====================================================================================================================
 # Types
@@ -29,9 +29,9 @@ type
     msScoreRank    ## Sort all results by score
 
   CollectionSearchFn* = proc(collection: string, query_embedding: seq[float32],
-                             top_k: int): Result[seq[SearchResult], BridgeError] {.raises: [].}
+                             top_k: int): Choice[seq[SearchResult]] {.raises: [].}
 
-  EmbedQueryFn* = proc(text: string): Result[seq[float32], BridgeError] {.raises: [].}
+  EmbedQueryFn* = proc(text: string): Choice[seq[float32]] {.raises: [].}
 
 # =====================================================================================================================
 # Configuration
@@ -47,11 +47,11 @@ proc default_search_config*(collections: seq[string]): SearchConfig =
 proc search_cross_lingual*(query: string, embed_fn: EmbedQueryFn,
                            search_fn: CollectionSearchFn,
                            config: SearchConfig
-                          ): Result[seq[SearchResult], BridgeError] =
+                          ): Choice[seq[SearchResult]] =
   ## Search across multiple language collections and merge results.
   let qemb = embed_fn(query)
   if qemb.is_bad:
-    return Result[seq[SearchResult], BridgeError].bad(qemb.err)
+    return bad[seq[SearchResult]](qemb.err)
   var all_results: seq[SearchResult]
   for coll in config.collections:
     let results = search_fn(coll, qemb.val, config.top_k)
@@ -69,15 +69,15 @@ proc search_cross_lingual*(query: string, embed_fn: EmbedQueryFn,
   # Trim to top_k
   if all_results.len > config.top_k:
     all_results.setLen(config.top_k)
-  Result[seq[SearchResult], BridgeError].good(all_results)
+  good(all_results)
 
 proc search_single_collection*(query: string, collection: string,
                                embed_fn: EmbedQueryFn,
                                search_fn: CollectionSearchFn,
                                top_k: int = 10
-                              ): Result[seq[SearchResult], BridgeError] =
+                              ): Choice[seq[SearchResult]] =
   ## Search a single collection.
   let qemb = embed_fn(query)
   if qemb.is_bad:
-    return Result[seq[SearchResult], BridgeError].bad(qemb.err)
+    return bad[seq[SearchResult]](qemb.err)
   search_fn(collection, qemb.val, top_k)

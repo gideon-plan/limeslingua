@@ -2,5 +2,5 @@
 
 {.experimental: "strict_funcs".}
 
-import limeslingua/[detect, normalize, route, search, lattice]
-export detect, normalize, route, search, lattice
+import limeslingua/[detect, normalize, route, search]
+export detect, normalize, route, search

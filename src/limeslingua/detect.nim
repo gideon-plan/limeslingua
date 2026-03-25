@@ -4,7 +4,7 @@
 
 {.experimental: "strict_funcs".}
 
-import lattice
+import basis/code/choice
 
 # =====================================================================================================================
 # Types
@@ -16,22 +16,22 @@ type
     name*: string    ## Full name (e.g. "English", "German", "Japanese")
     confidence*: float64
 
-  DetectFn* = proc(text: string): Result[Language, BridgeError] {.raises: [].}
+  DetectFn* = proc(text: string): Choice[Language] {.raises: [].}
     ## Function that detects the language of text.
     ## Abstracts over lingua's detection API.
 
-  DetectMultiFn* = proc(text: string, top_k: int): Result[seq[Language], BridgeError] {.raises: [].}
+  DetectMultiFn* = proc(text: string, top_k: int): Choice[seq[Language]] {.raises: [].}
     ## Function that returns top-k language candidates.
 
 # =====================================================================================================================
 # Detection
 # =====================================================================================================================
 
-proc detect*(text: string, detect_fn: DetectFn): Result[Language, BridgeError] =
+proc detect*(text: string, detect_fn: DetectFn): Choice[Language] =
   detect_fn(text)
 
 proc detect_multi*(text: string, detect_fn: DetectMultiFn,
-                   top_k: int = 3): Result[seq[Language], BridgeError] =
+                   top_k: int = 3): Choice[seq[Language]] =
   detect_fn(text, top_k)
 
 proc is_language*(lang: Language, code: string): bool =

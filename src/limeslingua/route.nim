@@ -3,7 +3,7 @@
 {.experimental: "strict_funcs".}
 
 import std/tables
-import lattice, detect
+import basis/code/choice, detect
 
 # =====================================================================================================================
 # Types
@@ -35,18 +35,18 @@ proc default_route_config*(prefix: string = "vectors"): RouteConfig =
 
 proc route*(text: string, detect_fn: DetectFn,
             config: RouteConfig = default_route_config()
-           ): Result[RouteResult, BridgeError] =
+           ): Choice[RouteResult] =
   ## Detect language and route to appropriate collection.
   let lang = detect_fn(text)
   if lang.is_bad:
-    return Result[RouteResult, BridgeError].bad(lang.err)
+    return bad[RouteResult](lang.err)
   let code = lang.val.code
   if code in config.collection_map:
-    Result[RouteResult, BridgeError].good(
+    good(
       RouteResult(collection: config.collection_map[code],
                   language: lang.val, fallback: false))
   else:
-    Result[RouteResult, BridgeError].good(
+    good(
       RouteResult(collection: config.default_collection,
                   language: lang.val, fallback: true))
 

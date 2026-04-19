@@ -24,9 +24,9 @@ type
     collections*: seq[string]  ## Collections to search across
     merge_strategy*: MergeStrategy
 
-  MergeStrategy* = enum
-    msInterleave   ## Round-robin from each collection
-    msScoreRank    ## Sort all results by score
+  MergeStrategy* {.pure.} = enum
+    Interleave   ## Round-robin from each collection
+    ScoreRank    ## Sort all results by score
 
   CollectionSearchFn* = proc(collection: string, query_embedding: seq[float32],
                              top_k: int): Choice[seq[SearchResult]] {.raises: [].}
@@ -38,7 +38,7 @@ type
 # =====================================================================================================================
 
 proc default_search_config*(collections: seq[string]): SearchConfig =
-  SearchConfig(top_k: 10, collections: collections, merge_strategy: msScoreRank)
+  SearchConfig(top_k: 10, collections: collections, merge_strategy: MergeStrategy.ScoreRank)
 
 # =====================================================================================================================
 # Cross-lingual search
@@ -59,12 +59,12 @@ proc search_cross_lingual*(query: string, embed_fn: EmbedQueryFn,
       continue  # Skip failing collections
     all_results.add(results.val)
   case config.merge_strategy
-  of msScoreRank:
+  of MergeStrategy.ScoreRank:
     all_results.sort(proc(a, b: SearchResult): int =
       if a.score > b.score: -1
       elif a.score < b.score: 1
       else: 0)
-  of msInterleave:
+  of MergeStrategy.Interleave:
     discard  # Already interleaved by collection order
   # Trim to top_k
   if all_results.len > config.top_k:

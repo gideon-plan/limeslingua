@@ -13,10 +13,10 @@ import detect
 # =====================================================================================================================
 
 type
-  NormForm* = enum
-    nfNone     ## No Unicode normalization
-    nfNFC      ## Canonical composition
-    nfNFKC     ## Compatibility composition
+  NormForm* {.pure.} = enum
+    None     ## No Unicode normalization
+    NFC      ## Canonical composition
+    NFKC     ## Compatibility composition
 
   NormConfig* = object
     form*: NormForm
@@ -24,20 +24,20 @@ type
     strip_whitespace*: bool
     collapse_whitespace*: bool
 
-  Script* = enum
-    scLatin
-    scCyrillic
-    scCJK
-    scArabic
-    scDevanagari
-    scUnknown
+  Script* {.pure.} = enum
+    Latin
+    Cyrillic
+    CJK
+    Arabic
+    Devanagari
+    Unknown
 
 # =====================================================================================================================
 # Configuration
 # =====================================================================================================================
 
 proc default_norm_config*(): NormConfig =
-  NormConfig(form: nfNFC, lowercase: true, strip_whitespace: true,
+  NormConfig(form: NormForm.NFC, lowercase: true, strip_whitespace: true,
              collapse_whitespace: true)
 
 # =====================================================================================================================
@@ -84,17 +84,17 @@ proc detect_script*(text: string): Script =
   for r in text.runes:
     let cp = int(r)
     if cp >= 0x0041 and cp <= 0x024F:
-      inc counts[scLatin]
+      inc counts[Script.Latin]
     elif cp >= 0x0400 and cp <= 0x04FF:
-      inc counts[scCyrillic]
+      inc counts[Script.Cyrillic]
     elif (cp >= 0x4E00 and cp <= 0x9FFF) or (cp >= 0x3040 and cp <= 0x30FF):
-      inc counts[scCJK]
+      inc counts[Script.CJK]
     elif cp >= 0x0600 and cp <= 0x06FF:
-      inc counts[scArabic]
+      inc counts[Script.Arabic]
     elif cp >= 0x0900 and cp <= 0x097F:
-      inc counts[scDevanagari]
+      inc counts[Script.Devanagari]
   var max_count = 0
-  result = scUnknown
+  result = Script.Unknown
   for s in Script:
     if counts[s] > max_count:
       max_count = counts[s]

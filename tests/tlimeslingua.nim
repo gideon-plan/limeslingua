@@ -40,12 +40,12 @@ suite "detect":
 
 suite "normalize":
   test "lowercase normalization":
-    let config = NormConfig(form: nfNone, lowercase: true,
+    let config = NormConfig(form: NormForm.None, lowercase: true,
                             strip_whitespace: false, collapse_whitespace: false)
     check normalize_text("Hello WORLD", config) == "hello world"
 
   test "whitespace collapse":
-    let config = NormConfig(form: nfNone, lowercase: false,
+    let config = NormConfig(form: NormForm.None, lowercase: false,
                             strip_whitespace: true, collapse_whitespace: true)
     check normalize_text("  hello   world  ", config) == "hello world"
 
@@ -54,13 +54,13 @@ suite "normalize":
     check result == "hello world"
 
   test "detect script Latin":
-    check detect_script("Hello world") == scLatin
+    check detect_script("Hello world") == Script.Latin
 
   test "detect script Cyrillic":
-    check detect_script("Привет мир") == scCyrillic
+    check detect_script("Привет мир") == Script.Cyrillic
 
   test "detect script CJK":
-    check detect_script("こんにちは世界") == scCJK
+    check detect_script("こんにちは世界") == Script.CJK
 
   test "normalize for language delegates":
     let result = normalize_for_language("  HELLO  ", English)
@@ -113,7 +113,7 @@ suite "search":
         Result[seq[SearchResult], BridgeError].good(@[
           SearchResult(text: "german doc", score: 0.8, collection: c, language: German)])
     let config = SearchConfig(top_k: 5, collections: @["vectors_en", "vectors_de"],
-                              merge_strategy: msScoreRank)
+                              merge_strategy: MergeStrategy.ScoreRank)
     let result = search_cross_lingual("query", mock_embed, mock_search, config)
     check result.is_good
     check result.val.len == 2
